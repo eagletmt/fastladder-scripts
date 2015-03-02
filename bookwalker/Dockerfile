@@ -15,7 +15,7 @@ ADD Gemfile /tmp/Gemfile
 ADD Gemfile.lock /tmp/Gemfile.lock
 RUN cd /tmp && bundle install -j4 --deployment --path vendor/bundle
 
-ADD . /app
+ADD bookwalker.rb /app/
 RUN mv /tmp/Gemfile /app/Gemfile \
   && mv /tmp/Gemfile.lock /app/Gemfile.lock \
   && mv /tmp/.bundle /app/.bundle \
