@@ -1,7 +1,6 @@
 require 'json'
 require 'optparse'
 
-require 'pit'
 require 'addressable/uri'
 require 'faraday'
 
@@ -13,7 +12,8 @@ module PxFeed
     def start(argv)
       opts = {
         bookmark: false,
-        pixiv: nil,
+        pixiv_username: nil,
+        pixiv_password: nil,
         dry_run: false,
       }
       words = []
@@ -31,7 +31,8 @@ module PxFeed
 
         parser.on('-b', '--bookmark', 'Enable bookmark_new_illust') do
           opts[:bookmark] = true
-          opts[:pixiv] ||= Pit.get 'www.pixiv.net', require: { 'username' => 'username', 'password' => 'password' }
+          opts[:pixiv_username] ||= ENV['PIXIV_USERNAME']
+          opts[:pixiv_password] ||= ENV['PIXIV_PASSWRD']
         end
 
         parser.on('-n', '--dry-run', "Don't post to Fastladder") do
@@ -39,7 +40,8 @@ module PxFeed
         end
 
         parser.on('-u FILE', 'Path to the file containing user ids') do |v|
-          opts[:pixiv] ||= Pit.get 'www.pixiv.net', require: { 'username' => 'username', 'password' => 'password' }
+          opts[:pixiv_username] ||= ENV['PIXIV_USERNAME']
+          opts[:pixiv_password] ||= ENV['PIXIV_PASSWRD']
           open(v) do |f|
             f.each_line do |user_id|
               user_ids << user_id.chomp.to_i
@@ -49,9 +51,8 @@ module PxFeed
       end.parse! argv
       words += argv
 
-      config = Pit.get('pxfeed', require: (opts[:dry_run] ? {} : { 'api_key' => 'API key' }))
-      api_key = config['api_key']
-      base_uri = config['base_uri'] || 'http://localhost/'
+      api_key = ENV['FASTLADDER_API_KEY']
+      base_uri = ENV['FASTLADDER_URL']
 
       fetcher = PxFeed::Fetcher.new
       fl = Faraday::Connection.new do |builder|
@@ -84,7 +85,7 @@ module PxFeed
         feedlink.query_values = { id: user_id }
         feeds = []
         if not logged_in
-          fetcher.login(opts[:pixiv]['username'], opts[:pixiv]['password'])
+          fetcher.login(opts[:pixiv_username], opts[:pixiv_password])
           logged_in = true
         end
         fetcher.user_bookmarks(user_id) do |user, title, thumb, link, pubdate|
@@ -101,7 +102,7 @@ module PxFeed
         feedlink = 'http://www.pixiv.net/bookmark_new_illust.php'
         feeds = []
         if not logged_in
-          fetcher.login(opts[:pixiv]['username'], opts[:pixiv]['password'])
+          fetcher.login(opts[:pixiv_username], opts[:pixiv_password])
           logged_in = true
         end
         fetcher.bookmark_new_illust do |user, title, thumb, link, pubdate|
@@ -130,10 +131,15 @@ module PxFeed
     end
 
     def replace_host(image_url)
-      uri = Addressable::URI.parse(image_url)
-      uri.host = ENV['REPLACE_HOST']
-      uri.scheme = 'https'
-      uri.to_s
+      if ENV['REPLACE_URL']
+        uri = Addressable::URI.parse(image_url)
+        replace_uri = Addressable::URI.parse(ENV['REPLACE_URL'])
+        uri.host = replace_uri.host
+        uri.scheme = replace_uri.scheme
+        uri.to_s
+      else
+        image_url
+      end
     end
   end
 end

@@ -18,12 +18,11 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
+  spec.add_dependency "addressable"
   spec.add_dependency "faraday"
   spec.add_dependency "faraday-cookie_jar"
-  spec.add_dependency "addressable"
   spec.add_dependency "nokogiri"
-  spec.add_dependency "pit"
 
-  spec.add_development_dependency "bundler", "~> 1.3"
+  spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
 end

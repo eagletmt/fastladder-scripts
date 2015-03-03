@@ -1,29 +1,20 @@
-# Pxfeed
+# fastladder-pixiv
 
-TODO: Write a gem description
+Post pixiv news to Fastladder.
 
-## Installation
-
-Add this line to your application's Gemfile:
-
-    gem 'pxfeed'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install pxfeed
-
-## Usage
-
-TODO: Write usage instructions here
-
-## Contributing
-
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+## Environment variables
+- `FASTLADDER_URL` (required)
+    - Your Fastladder URL
+    - e.g. `https://fastladder.example.com`
+- `FASTLADDER_API_KEY` (required)
+    - Your Fastladder API key
+    - e.g. `0123456789abcdef`
+- `REPLACE_URL` (optional)
+    - Replace image hosts
+    - e.g. `https://fastladder-image-proxy.example.com`
+- `PIXIV_USERNAME` (optional)
+    - pixiv username for login
+    - Required when `--bookmark` is specified.
+- `PIXIV_PASSWORD` (required)
+    - pixiv password for login
+    - Required when `--bookmark` is specified.
