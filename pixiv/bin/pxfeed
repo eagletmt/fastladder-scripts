@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'pxfeed/cli'
+
+PxFeed::CLI.new.start(ARGV.dup)
