@@ -14,7 +14,7 @@ Post pixiv news to Fastladder.
     - e.g. `https://fastladder-image-proxy.example.com`
 - `PIXIV_USERNAME` (optional)
     - pixiv username for login
-    - Required when `--bookmark` is specified.
+    - Required for `bookmark` or `user` subcommnd.
 - `PIXIV_PASSWORD` (required)
     - pixiv password for login
-    - Required when `--bookmark` is specified.
+    - Required for `bookmark` or `user` subcommnd.
