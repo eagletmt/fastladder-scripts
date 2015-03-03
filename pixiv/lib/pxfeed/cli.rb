@@ -1,66 +1,57 @@
-require 'json'
-require 'optparse'
-
 require 'addressable/uri'
 require 'faraday'
+require 'json'
+require 'thor'
 
 require 'pxfeed/fetcher'
 require 'pxfeed/version'
 
 module PxFeed
-  class CLI
-    def start(argv)
-      opts = {
-        bookmark: false,
-        pixiv_username: nil,
-        pixiv_password: nil,
-        dry_run: false,
-      }
+  class CLI < Thor
+    desc 'post', 'Post news to Fastladder'
+    option :bookmark,
+      desc: 'Enable bookmark_new_illust mode',
+      type: :boolean,
+      aliases: %w[-b]
+    option :dry_run,
+      desc: "Dry run - don't post to Fastladder",
+      type: :boolean,
+      aliases: %w[-n]
+    option :words,
+      desc: 'Path to the file containing words',
+      type: :string,
+      aliases: %w[-w]
+    option :users,
+      desc: 'Path to the file containing user ids',
+      type: :string,
+      aliases: %w[-u]
+    def post
       words = []
       user_ids = []
-      OptionParser.new.tap do |parser|
-        parser.version = PxFeed::VERSION
 
-        parser.on('-w FILE', 'Path to the file containing words') do |v|
-          open(v) do |f|
-            f.each_line do |word|
-              words << word.chomp
-            end
-          end
+      if options[:words]
+        open(options[:words]) do |f|
+          f.each_line { |word| words << word.chomp }
         end
-
-        parser.on('-b', '--bookmark', 'Enable bookmark_new_illust') do
-          opts[:bookmark] = true
-          opts[:pixiv_username] ||= ENV['PIXIV_USERNAME']
-          opts[:pixiv_password] ||= ENV['PIXIV_PASSWRD']
+      end
+      if options[:users]
+        open(options[:users]) do |f|
+          f.each_line { |user_id| user_ids << user_id.chomp.to_i }
         end
+      end
 
-        parser.on('-n', '--dry-run', "Don't post to Fastladder") do
-          opts[:dry_run] = true
-        end
-
-        parser.on('-u FILE', 'Path to the file containing user ids') do |v|
-          opts[:pixiv_username] ||= ENV['PIXIV_USERNAME']
-          opts[:pixiv_password] ||= ENV['PIXIV_PASSWRD']
-          open(v) do |f|
-            f.each_line do |user_id|
-              user_ids << user_id.chomp.to_i
-            end
-          end
-        end
-      end.parse! argv
-      words += argv
-
+      pixiv_username = ENV['PIXIV_USERNAME']
+      pixiv_password = ENV['PIXIV_PASSWORD']
       api_key = ENV['FASTLADDER_API_KEY']
-      base_uri = ENV['FASTLADDER_URL']
 
       fetcher = PxFeed::Fetcher.new
       fl = Faraday::Connection.new do |builder|
-        builder.url_prefix = base_uri
+        builder.url_prefix = ENV['FASTLADDER_URL']
         builder.use Faraday::Response::RaiseError
         builder.use Faraday::Request::UrlEncoded
         builder.use Faraday::Adapter::NetHttp
       end
+
       words.each do |word|
         feedlink = Addressable::URI.parse 'http://www.pixiv.net/search.php'
         feedlink.query_values = {
@@ -71,7 +62,7 @@ module PxFeed
         fetcher.search_by_tag word do |user, title, thumb, link, pubdate|
           feeds << to_feed(feedlink, "PxFeed - #{word}", user, title, thumb, link, pubdate)
         end
-        if opts[:dry_run]
+        if options[:dry_run]
           puts feeds
         else
           fl.post '/rpc/update_feeds', feeds: feeds.to_json, api_key: api_key
@@ -85,30 +76,30 @@ module PxFeed
         feedlink.query_values = { id: user_id }
         feeds = []
         if not logged_in
-          fetcher.login(opts[:pixiv_username], opts[:pixiv_password])
+          fetcher.login(pixiv_username, pixiv_password)
           logged_in = true
         end
         fetcher.user_bookmarks(user_id) do |user, title, thumb, link, pubdate|
           feeds << to_feed(feedlink, "PxFeed - Bookmarks by #{user_id}", user, title, thumb, link, pubdate)
         end
-        if opts[:dry_run]
+        if options[:dry_run]
           puts feeds
         else
           fl.post '/rpc/update_feeds', feeds: feeds.to_json, api_key: api_key
         end
       end
 
-      if opts[:bookmark]
+      if options[:bookmark]
         feedlink = 'http://www.pixiv.net/bookmark_new_illust.php'
         feeds = []
         if not logged_in
-          fetcher.login(opts[:pixiv_username], opts[:pixiv_password])
+          fetcher.login(pixiv_username, pixiv_password)
           logged_in = true
         end
         fetcher.bookmark_new_illust do |user, title, thumb, link, pubdate|
           feeds << to_feed(feedlink, 'PxFeed - bookmark new illust', user, title, thumb, link, pubdate)
         end
-        if opts[:dry_run]
+        if options[:dry_run]
           puts feeds
           puts "#{feeds.to_json.bytesize} bytes"
         else
@@ -116,6 +107,8 @@ module PxFeed
         end
       end
     end
+
+    private
 
     def to_feed(feedlink, feedtitle, user, title, thumb, link, pubdate)
       {
