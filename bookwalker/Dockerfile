@@ -5,9 +5,9 @@ RUN env DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-co
   && apt-add-repository ppa:brightbox/ruby-ng \
   && apt-get update \
   && env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
-  && env DEBIAN_FRONTEND=noninteractive apt-get install -y ruby2.2 ruby2.2-dev build-essential zlib1g-dev \
+  && env DEBIAN_FRONTEND=noninteractive apt-get install -y ruby2.2=2.2.2-1bbox1~utopic1 ruby2.2-dev build-essential zlib1g-dev \
   && apt-get clean
-RUN gem install --no-user-install --no-ri --no-rdoc bundler -v 1.8.3
+RUN gem install --no-user-install --no-ri --no-rdoc bundler -v 1.9.4
 
 RUN mkdir -p /app
 
