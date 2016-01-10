@@ -25,8 +25,13 @@ end
 
 def to_feed(tweet)
   text = tweet.text.dup
+  media_urls = Hash.new { |h, k| h[k] = [] }
   tweet.media.each do |media|
-    text.gsub!(media.url, %Q!<a href="#{media.media_url_https}"><img alt="#{media.media_url_https}" src="#{media.media_url_https}"/></a>!)
+    media_urls[media.url] << media.media_url_https
+  end
+  media_urls.each do |link_url, image_urls|
+    image_tags = image_urls.map { |u| %Q!<a href="#{u}"><img alt="#{u}" src="#{u}"/></a>! }.join(' ')
+    text.gsub!(link_url, image_tags)
   end
   tweet.urls.each do |url|
     text.gsub!(url.url, %Q!<a href="#{url.expanded_url}">#{url.expanded_url}</a>!)
