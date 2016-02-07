@@ -1,23 +1,19 @@
-FROM ubuntu:14.10
+FROM alpine:3.3
 MAINTAINER Kohei Suzuki <eagletmt@gmail.com>
 
-RUN env DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common \
-  && apt-add-repository ppa:brightbox/ruby-ng \
-  && apt-get update \
-  && env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
-  && env DEBIAN_FRONTEND=noninteractive apt-get install -y ruby2.2=2.2.2-1bbox1~utopic1 ruby2.2-dev build-essential zlib1g-dev \
-  && apt-get clean
-RUN gem install --no-user-install --no-ri --no-rdoc bundler -v 1.9.4
+RUN apk add --update ruby-dev ruby-io-console ruby-json ca-certificates libxml2-dev libxslt-dev g++ musl-dev make
+RUN gem install --no-user-install --no-ri --no-rdoc bundler -v 1.11.2
+RUN bundle config build.nokogiri --use-system-libraries
 
 RUN mkdir -p /app
 
-ADD Gemfile /tmp/Gemfile
-ADD Gemfile.lock /tmp/Gemfile.lock
-ADD pxfeed.gemspec /tmp/pxfeed.gemspec
-ADD lib/pxfeed/version.rb /tmp/lib/pxfeed/version.rb
+COPY Gemfile /tmp/Gemfile
+COPY Gemfile.lock /tmp/Gemfile.lock
+COPY pxfeed.gemspec /tmp/pxfeed.gemspec
+COPY lib/pxfeed/version.rb /tmp/lib/pxfeed/version.rb
 RUN cd /tmp && bundle install -j4 --deployment --path vendor/bundle
 
-ADD . /app/
+COPY . /app/
 RUN mv /tmp/Gemfile /app/Gemfile \
   && mv /tmp/Gemfile.lock /app/Gemfile.lock \
   && mv /tmp/.bundle /app/.bundle \
