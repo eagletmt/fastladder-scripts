@@ -1,7 +1,7 @@
 FROM alpine:3.4
 MAINTAINER Kohei Suzuki <eagletmt@gmail.com>
 
-RUN apk add --update ruby-dev ruby-io-console ruby-json ca-certificates libxml2-dev libxslt-dev gcc musl-dev make
+RUN apk add --update ruby-dev ruby-io-console ruby-json ca-certificates libxml2-dev libxslt-dev libgcrypt-dev gcc musl-dev make
 RUN gem install --no-user-install --no-ri --no-rdoc bundler -v 1.12.5
 RUN bundle config build.nokogiri --use-system-libraries
 
