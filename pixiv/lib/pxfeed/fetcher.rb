@@ -1,6 +1,7 @@
 require 'date'
 require 'faraday'
 require 'nokogiri'
+require 'json'
 
 require 'faraday/cookie_jar'
 
@@ -52,9 +53,15 @@ module PxFeed
     end
 
     def login(user, pass)
-      res = @conn.post '/login.php', mode: 'login', pixiv_id: user, pass: pass, skip: 1
-      if res.status != 302
-        raise LoginFailure
+      res = @conn.get('https://accounts.pixiv.net/login?lang=ja')
+      post_key = Nokogiri::HTML.parse(res.body).at_css('#old-login input[name="post_key"]')['value']
+      res = @conn.post('https://accounts.pixiv.net/api/login?lang=ja', pixiv_id: user, password: pass, post_key: post_key)
+      if res.status != 200
+        raise LoginFailure.new("/api/login returned status #{res.status}")
+      end
+      j = JSON.parse(res.body)
+      if j['error']
+        raise LoginFailure.new("/api/login returned error #{j}")
       end
     end
 
