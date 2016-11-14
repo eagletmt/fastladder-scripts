@@ -35,7 +35,7 @@ module PxFeed
             next
           end
           title = a.inner_text
-          thumb = a.at_css('img')['src']
+          thumb = a.at_css('img')['data-src']
           link = @conn.url_prefix + a['href']
           pubdate = extract_pubdate(thumb)
           user = li.at_css('.user').inner_text
