@@ -80,7 +80,7 @@ module PxFeed
       Nokogiri::HTML.parse(body).tap do |doc|
         doc.css('.image-item').each do |li|
           title = li.at_css('.title')['title']
-          thumb = li.at_css('._thumbnail')['src']
+          thumb = li.at_css('._thumbnail')['data-src']
           user = li.at_css('.user')['title']
           link = li.at_css('a.work')['href']
           pubdate = extract_pubdate(thumb)
