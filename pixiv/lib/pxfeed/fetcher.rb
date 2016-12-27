@@ -63,6 +63,9 @@ module PxFeed
       if j['error']
         raise LoginFailure.new("/api/login returned error #{j}")
       end
+      unless j['body']['successed']
+        raise LoginFailure.new("/api/login failed #{j}")
+      end
     end
 
     private
