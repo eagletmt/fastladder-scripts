@@ -54,6 +54,10 @@ module PxFeed
 
     def session(phpsessid)
       @conn.headers['Cookie'] = "PHPSESSID=#{phpsessid}"
+      res = @conn.get('/history.php')
+      if res.status != 200
+        raise NotLoggedIn
+      end
     end
 
     def login(user, pass)
