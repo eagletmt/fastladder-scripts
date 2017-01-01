@@ -61,7 +61,8 @@ module PxFeed
     private
 
     def pixiv_login(fetcher)
-      fetcher.login(ENV['PIXIV_USERNAME'], ENV['PIXIV_PASSWORD'])
+      #fetcher.login(ENV['PIXIV_USERNAME'], ENV['PIXIV_PASSWORD'])
+      fetcher.session(ENV['PIXIV_PHPSESSID'])
     end
 
     def fastladder

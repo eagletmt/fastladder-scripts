@@ -52,6 +52,10 @@ module PxFeed
       each_image_item res.body, &blk
     end
 
+    def session(phpsessid)
+      @conn.headers['Cookie'] = "PHPSESSID=#{phpsessid}"
+    end
+
     def login(user, pass)
       res = @conn.get('https://accounts.pixiv.net/login?lang=ja')
       post_key = Nokogiri::HTML.parse(res.body).at_css('#old-login input[name="post_key"]')['value']
